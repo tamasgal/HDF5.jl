@@ -356,10 +356,10 @@ end
 
 # Test the h5read/write interface with a filename as a first argument, when
 # the file does not exist
+rm(fn)
 h5write(fn, "newgroup/W", W)
 Wr = h5read(fn, "newgroup/W")
 @test Wr == W
-close(f)
 rm(fn)
 
 # Test direct chunk writing
