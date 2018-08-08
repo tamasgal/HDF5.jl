@@ -1631,6 +1631,9 @@ function readmmap(obj::HDF5Dataset, ::Type{Array{T}}) where {T}
         error("Error mmapping array")
     end
     Mmap.mmap(fdio(fd), Array{T,length(dims)}, dims, offset)
+    # Mmap.mmap(fdio(fd), Array{T,length(dims)}, dims, offset) # does not work on julia 0.7
+    A = Mmap.mmap(fdio(fd), Array{UInt8,1}, prod(dims)*sizeof(T), offset)
+    return reshape(reinterpret(T,A),dims)
 end
 
 function readmmap(obj::HDF5Dataset)
