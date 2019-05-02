@@ -1739,6 +1739,25 @@ function write(obj::DatasetOrAttribute, x::Union{T, Array{T}}) where {T<:ScalarO
        close(dtype)
     end
 end
+# Complex
+function write(parent::Union{HDF5File, HDF5Group}, name::String, x::Union{Complex{T}, Array{Complex{T}}}) where {T<:HDF5BitsKind}
+    d_type_compound = HDF5.h5t_create(HDF5.H5T_COMPOUND, 2*sizeof(T))
+    h5t_insert(d_type_compound, "r", 0 , hdf5_type_id(T))
+    h5t_insert(d_type_compound, "i", sizeof(T), hdf5_type_id(T))
+
+    shape = collect(reverse(size(x)))
+    space = h5s_create_simple(ndims(x), shape, shape)
+
+    dset_compound = h5d_create(parent, name, d_type_compound, space,
+                                    HDF5.H5P_DEFAULT,HDF5.H5P_DEFAULT,HDF5.H5P_DEFAULT)
+    h5s_close(space)
+
+    h5d_write(dset_compound, d_type_compound, HDF5.H5S_ALL, HDF5.H5S_ALL, HDF5.H5P_DEFAULT, x)
+
+    h5d_close(dset_compound)
+    h5t_close(d_type_compound)
+end
+
 # VLEN types
 function write(obj::DatasetOrAttribute, data::HDF5Vlen{T}) where {T<:Union{HDF5Scalar,CharType}}
     dtype = datatype(data)
